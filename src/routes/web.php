@@ -19,5 +19,5 @@ Route::get("/", function () {
 });
 
 
-Route::get('/articles', [WebArticleController::class, 'getArticles'])->name('articles');
-Route::get('/login', [WebArticleController::class, 'getArticles'])->name('login');
+// Route::get('/articles', [WebArticleController::class, 'getArticles'])->name('articles');
+// Route::get('/login', [WebArticleController::class, 'getArticles'])->name('login');

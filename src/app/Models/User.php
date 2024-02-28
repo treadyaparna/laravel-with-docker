@@ -2,6 +2,7 @@
 namespace App\Models;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
@@ -18,7 +19,7 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
-        'role_id'
+        'roleId'
     ];
     /**
      * The attributes that should be hidden for arrays.
@@ -27,7 +28,7 @@ class User extends Authenticatable implements JWTSubject
      */
     protected $hidden = [
         'password',
-        'remember_token',
+        'rememberToken',
     ];
     /**
      * The attributes that should be cast to native types.
@@ -35,7 +36,7 @@ class User extends Authenticatable implements JWTSubject
      * @var array
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
+        'emailVerifiedAt' => 'datetime',
     ];
 
     /**
@@ -55,13 +56,16 @@ class User extends Authenticatable implements JWTSubject
         return [];
     }
 
+    /**
+     * @return BelongsTo
+     */
     public function role()
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo(Role::class, 'roleId');
     }
 
 
-    public function hasRole($role)
+    public function hasRole($role): bool
     {
         return $this->role()->value('name') === $role;
     }

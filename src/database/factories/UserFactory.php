@@ -26,7 +26,7 @@ class UserFactory extends Factory
             "email" => fake()
                 ->unique()
                 ->safeEmail(),
-            "role_id" => $roleFrom->id,
+            "roleId" => $roleFrom->id,
         ];
     }
 

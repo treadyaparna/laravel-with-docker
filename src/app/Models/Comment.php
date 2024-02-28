@@ -15,8 +15,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $content
  * @property integer|null $userId
  * @property integer|null $articleId
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property Carbon|null $createdAt
+ * @property Carbon|null $updatedAt
  */
 class Comment extends Model
 {

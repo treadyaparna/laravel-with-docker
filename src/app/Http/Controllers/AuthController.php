@@ -1,5 +1,11 @@
 <?php
 namespace App\Http\Controllers;
+
+use App\Enums\HttpStatus;
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegistrationRequest;
+use App\Response\ApiResponse;
+use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -9,11 +15,13 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     /**
-     * Create a new AuthController instance.
-     *
-     * @return void
+     * var UserService
      */
-    public function __construct() {
+    private $userService;
+
+    public function __construct(UserService $userService) {
+        $this->userService = $userService;
+
         $this->middleware('auth:api', ['except' => ['login', 'register']]);
     }
 
@@ -58,9 +66,9 @@ class AuthController extends Controller
      *                      @OA\Property(property="id", type="number", example=2),
      *                      @OA\Property(property="name", type="string", example="User"),
      *                      @OA\Property(property="email", type="string", example="user@test.com"),
-     *                      @OA\Property(property="email_verified_at", type="string", example=null),
-     *                      @OA\Property(property="updated_at", type="string", example="2022-06-28 06:06:17"),
-     *                      @OA\Property(property="created_at", type="string", example="2022-06-28 06:06:17"),
+     *                      @OA\Property(property="emailVerifiedAt", type="string", example=null),
+     *                      @OA\Property(property="updatedAt", type="string", example="2022-06-28 06:06:17"),
+     *                      @OA\Property(property="createdAt", type="string", example="2022-06-28 06:06:17"),
      *                  ),
      *                  @OA\Property(property="access_token", type="object",
      *                      @OA\Property(property="token", type="string", example="randomtokenasfhajskfhajf398rureuuhfdshk"),
@@ -85,19 +93,23 @@ class AuthController extends Controller
      * )
      * @throws ValidationException
      */
-    public function login(Request $request): JsonResponse
+    public function login(LoginRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required|string|min:6',
-        ]);
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+        $loginUser = [
+            'email' => $request->input('email'), 
+            'password' => $request->input('password')
+        ];
+        
+        try {
+            $token = auth()->attempt($loginUser);
+
+            if (!$token) {
+                return ApiResponse::response(HttpStatus::HTTP_UNAUTHORIZED, 'Login failed');
+            }
+            return $this->createNewToken($token);
+        } catch (Exception $e) {
+            return ApiResponse::response($e->getCode(), $e->getMessage(), $e->getErrors());
         }
-        if (! $token = auth()->attempt($validator->validated())) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
-        return $this->createNewToken($token);
     }
 
     /**
@@ -124,7 +136,7 @@ class AuthController extends Controller
      *                          type="string"
      *                      ),
      *                      @OA\Property(
-     *                           property="role_id",
+     *                           property="roleId",
      *                           type="string"
      *                       )
      *                 ),
@@ -132,7 +144,7 @@ class AuthController extends Controller
      *                     "name":"User",
      *                     "email":"user@test.com",
      *                     "password":"password",
-     *                      "role_id":"1"
+     *                      "roleId":"1"
      *                }
      *             )
      *         )
@@ -151,10 +163,10 @@ class AuthController extends Controller
      *                      @OA\Property(property="id", type="number", example=1),
      *                      @OA\Property(property="name", type="string", example="User"),
      *                      @OA\Property(property="email", type="string", example="user@test.com"),
-     *                      @OA\Property(property="role_id", type="int", example="1"),
-     *                      @OA\Property(property="email_verified_at", type="string", example=null),
-     *                      @OA\Property(property="updated_at", type="string", example="2022-06-28 06:06:17"),
-     *                      @OA\Property(property="created_at", type="string", example="2022-06-28 06:06:17"),
+     *                      @OA\Property(property="roleId", type="int", example="1"),
+     *                      @OA\Property(property="emailVerifiedAt", type="string", example=null),
+     *                      @OA\Property(property="updatedAt", type="string", example="2022-06-28 06:06:17"),
+     *                      @OA\Property(property="createdAt", type="string", example="2022-06-28 06:06:17"),
      *                  ),
      *                  @OA\Property(property="access_token", type="object",
      *                      @OA\Property(property="token", type="string", example="randomtokenasfhajskfhajf398rureuuhfdshk"),
@@ -186,26 +198,20 @@ class AuthController extends Controller
      * )
      * @throws ValidationException
      */
-    public function register(Request $request): JsonResponse
+    public function register(RegistrationRequest $request): JsonResponse
     {
+        $name = $request->input('name');
+        $email = $request->input('email');
+        $password  = bcrypt($request->input('password'));
+        $roleId = $request->input('roleId');
 
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|between:2,100',
-            'email' => 'required|string|email|max:100|unique:users',
-            'password' => 'required|string|min:6',
-            'role_id' => 'required|integer|exists:roles,id',
-        ]);
-        if($validator->fails()){
-            return response()->json($validator->errors()->toJson(), 400);
+        try {
+            return $this->userService->addUser($name, $email, $password, $roleId) ?
+                ApiResponse::response(HttpStatus::HTTP_CREATED, 'Registration successfully'):
+                ApiResponse::response(HttpStatus::CANT_COMPLETE_REQUEST, 'Registration failed');
+        } catch (Exception $e) {
+            return ApiResponse::response($e->getCode(), $e->getMessage(), $e->getErrors());
         }
-        $user = User::create(array_merge(
-            $validator->validated(),
-            ['password' => bcrypt($request->password)]
-        ));
-        return response()->json([
-            'message' => 'User successfully registered',
-            'user' => $user
-        ], 201);
     }
 
     /**
@@ -253,8 +259,9 @@ class AuthController extends Controller
      */
     public function logout() {
         auth()->logout();
-        return response()->json(['message' => 'User successfully signed out']);
+        return ApiResponse::response(HttpStatus::HTTP_OK, 'User successfully signed out');
     }
+
     /**
      * Refresh a token.
      *
@@ -263,6 +270,7 @@ class AuthController extends Controller
     public function refresh() {
         return $this->createNewToken(auth()->refresh());
     }
+
     /**
      * Get the authenticated User.
      *
@@ -271,6 +279,7 @@ class AuthController extends Controller
     public function userProfile() {
         return response()->json(auth()->user());
     }
+    
     /**
      * Get the token array structure.
      *

@@ -317,15 +317,15 @@
                                                             "type": "string",
                                                             "example": "user@test.com"
                                                         },
-                                                        "email_verified_at": {
+                                                        "emailVerifiedAt": {
                                                             "type": "string",
                                                             "example": null
                                                         },
-                                                        "updated_at": {
+                                                        "updatedAt": {
                                                             "type": "string",
                                                             "example": "2022-06-28 06:06:17"
                                                         },
-                                                        "created_at": {
+                                                        "createdAt": {
                                                             "type": "string",
                                                             "example": "2022-06-28 06:06:17"
                                                         }
@@ -417,7 +417,7 @@
                                             "password": {
                                                 "type": "string"
                                             },
-                                            "role_id": {
+                                            "roleId": {
                                                 "type": "string"
                                             }
                                         },
@@ -429,7 +429,7 @@
                                     "name": "User",
                                     "email": "user@test.com",
                                     "password": "password",
-                                    "role_id": "1"
+                                    "roleId": "1"
                                 }
                             }
                         }
@@ -475,19 +475,19 @@
                                                             "type": "string",
                                                             "example": "user@test.com"
                                                         },
-                                                        "role_id": {
+                                                        "roleId": {
                                                             "type": "integer",
                                                             "example": "1"
                                                         },
-                                                        "email_verified_at": {
+                                                        "emailVerifiedAt": {
                                                             "type": "string",
                                                             "example": null
                                                         },
-                                                        "updated_at": {
+                                                        "updatedAt": {
                                                             "type": "string",
                                                             "example": "2022-06-28 06:06:17"
                                                         },
-                                                        "created_at": {
+                                                        "createdAt": {
                                                             "type": "string",
                                                             "example": "2022-06-28 06:06:17"
                                                         }

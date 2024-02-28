@@ -14,8 +14,8 @@ use Illuminate\Support\Carbon;
  * @property string|null $title
  * @property string|null $content
  * @property integer|null $userId
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property Carbon|null $createdAt
+ * @property Carbon|null $updatedAt
  */
 class Article extends Model
 {
@@ -61,6 +61,5 @@ class Article extends Model
     {
         return $this->belongsTo(User::class, 'userId');
     }
-
 
 }
