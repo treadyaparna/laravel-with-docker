@@ -24,9 +24,9 @@ class ArticleService
      *
      * @return array
      */
-    public function getArticles(): array
+    public function getArticles($articlePerPage): array
     {
-        return $this->articleRepo->getArticles()->toArray();
+        return $this->articleRepo->getArticles($articlePerPage)->toArray();
     }
 
     public function addArticle($articleTitle, $articleContent, $userId): bool
@@ -42,5 +42,10 @@ class ArticleService
     public function deleteArticle(int $articleId)
     {
         return $this->articleRepo->deleteArticle($articleId);
+    }
+
+    public function getArticle(int $articleId)
+    {
+        return $this->articleRepo->getArticle($articleId)->toArray();
     }
 }

@@ -15,6 +15,10 @@ use Illuminate\Http\Request;
 
 class ArticleController extends Controller
 {
+    /**
+     * Number of articles per page
+     */
+    const ARTICLE_PER_PAGE = 2;
 
     /**
      * @var ArticleService
@@ -24,7 +28,6 @@ class ArticleController extends Controller
     public function __construct(ArticleService $articleService) {
         $this->articleService = $articleService;
     }
-
 
     /**
      * @OA\Get(
@@ -53,14 +56,59 @@ class ArticleController extends Controller
     public function getArticles (): JsonResponse|array
     {
         try {
-            return $this->articleService->getArticles();
+            return $this->articleService->getArticles(self::ARTICLE_PER_PAGE);
         } catch (ValidationHttpException $e) {
-            return ApiResponse::response(HttpStatus::CANT_COMPLETE_VALIDATION, $e->getMessage(), $e->getErrors());
+            return ApiResponse::response(HttpStatus::CANT_COMPLETE_VALIDATION, $e->getMessage());
         } catch (ResourceException $e) {
-            return ApiResponse::response(HttpStatus::CANT_COMPLETE_REQUEST, $e->getMessage(), $e->getErrors());
+            return ApiResponse::response(HttpStatus::CANT_COMPLETE_REQUEST, $e->getMessage());
         } catch (Exception $e) {
-            return ApiResponse::response($e->getCode(), $e->getMessage(), $e->getErrors());
+            return ApiResponse::response($e->getCode(), $e->getMessage());
         }
+    }
+
+    /**
+     * @OA\Get(
+     *   path="/api/articles/{articleId}",
+     *   summary="Get a single article",
+     *   tags={"articles"},
+     *   operationId="getArticle",
+     *   @OA\Parameter(
+     *     name="articleId",
+     *     description="Article ID",
+     *     required=true,
+     *     in="path",
+     *     @OA\Schema(
+     *       type="integer"
+     *     )
+     *   ),
+     *   @OA\Response(
+     *     response=200,
+     *     description="Article fetched successfully",
+     *     @OA\JsonContent(ref="#/components/schemas/Article")
+     *   ),
+     *   @OA\Response(
+     *     response=500,
+     *     description="Internal server error",
+     *     @OA\JsonContent(
+     *       @OA\Property(property="message", type="string"),
+     *       @OA\Property(property="errors", type="object")
+     *     )
+     *   )
+     * )
+     */
+    public function getArticle(int $articleId): JsonResponse|array
+    {
+        try {
+            $article = $this->articleService->getArticle($articleId);
+        } catch (ValidationHttpException $e) {
+            return ApiResponse::response(HttpStatus::CANT_COMPLETE_VALIDATION, $e->getMessage());
+        } catch (ResourceException $e) {
+            return ApiResponse::response(HttpStatus::CANT_COMPLETE_REQUEST, $e->getMessage());
+        } catch (Exception $e) {
+            return ApiResponse::response($e->getCode(), $e->getMessage());
+        }
+
+        return $article;
     }
 
     /**
@@ -105,8 +153,10 @@ class ArticleController extends Controller
             return $this->articleService->addArticle($articleTitle, $articleContent, $userId) ?
                 ApiResponse::response(HttpStatus::HTTP_CREATED, 'Article created successfully') :
                 ApiResponse::response(HttpStatus::CANT_COMPLETE_REQUEST, 'Article not created');
+        } catch (ResourceException $e) {
+            return ApiResponse::response(HttpStatus::CANT_COMPLETE_REQUEST, $e->getMessage());
         } catch (Exception $e) {
-            return ApiResponse::response($e->getCode(), $e->getMessage(), $e->getErrors());
+            return ApiResponse::response($e->getCode(), $e->getMessage());
         }
     }
 
@@ -160,8 +210,10 @@ class ArticleController extends Controller
             return $this->articleService->editArticle($articleId, $articleTitle, $articleContent, $userId) ?
                 ApiResponse::response(HttpStatus::HTTP_OK, 'Article updated successfully') :
                 ApiResponse::response(HttpStatus::CANT_COMPLETE_REQUEST, 'Article not found');
+        } catch (ResourceException $e) {
+            return ApiResponse::response(HttpStatus::CANT_COMPLETE_REQUEST, $e->getMessage());
         } catch (Exception $e) {
-            return ApiResponse::response($e->getCode(), $e->getMessage(), $e->getErrors());
+            return ApiResponse::response($e->getCode(), $e->getMessage());
         }
     }
 
@@ -206,8 +258,10 @@ class ArticleController extends Controller
 
         try {
             return $this->articleService->deleteArticle($articleId);
+        } catch (ResourceException $e) {
+            return ApiResponse::response(HttpStatus::CANT_COMPLETE_REQUEST, $e->getMessage());
         } catch (Exception $e) {
-            return ApiResponse::response($e->getCode(), $e->getMessage(), $e->getErrors());
+            return ApiResponse::response($e->getCode(), $e->getMessage());
         }
     }
 

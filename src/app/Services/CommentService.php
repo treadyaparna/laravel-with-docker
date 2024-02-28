@@ -19,9 +19,9 @@ class CommentService
         $this->commentRepo = $commentRepo;
     }
 
-    public function getComments($articleId, $userId)
+    public function getComments($articleId)
     {
-        return $this->commentRepo->getComments($articleId, $userId)->toArray();
+        return $this->commentRepo->getComments($articleId)->toArray();
     }
 
     public function addComment($commentTitle, $commentContent, $userId, $articleId): bool
@@ -29,9 +29,9 @@ class CommentService
         return $this->commentRepo->addComment($commentTitle, $commentContent, $userId, $articleId);
     }
 
-    public function deleteComment($commentId)
+    public function deleteComment($commentId, $articleId)
     {
-        return $this->commentRepo->deleteComment($commentId);
+        return $this->commentRepo->deleteComment($commentId, $articleId);
     }
 
 }

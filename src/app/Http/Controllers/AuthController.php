@@ -6,6 +6,7 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegistrationRequest;
 use App\Response\ApiResponse;
 use App\Services\UserService;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -96,10 +97,10 @@ class AuthController extends Controller
     public function login(LoginRequest $request): JsonResponse
     {
         $loginUser = [
-            'email' => $request->input('email'), 
+            'email' => $request->input('email'),
             'password' => $request->input('password')
         ];
-        
+
         try {
             $token = auth()->attempt($loginUser);
 
@@ -108,7 +109,7 @@ class AuthController extends Controller
             }
             return $this->createNewToken($token);
         } catch (Exception $e) {
-            return ApiResponse::response($e->getCode(), $e->getMessage(), $e->getErrors());
+            return ApiResponse::response($e->getCode(), $e->getMessage());
         }
     }
 
@@ -210,7 +211,7 @@ class AuthController extends Controller
                 ApiResponse::response(HttpStatus::HTTP_CREATED, 'Registration successfully'):
                 ApiResponse::response(HttpStatus::CANT_COMPLETE_REQUEST, 'Registration failed');
         } catch (Exception $e) {
-            return ApiResponse::response($e->getCode(), $e->getMessage(), $e->getErrors());
+            return ApiResponse::response($e->getCode(), $e->getMessage());
         }
     }
 
@@ -267,7 +268,8 @@ class AuthController extends Controller
      *
      * @return JsonResponse
      */
-    public function refresh() {
+    public function refresh(): JsonResponse
+    {
         return $this->createNewToken(auth()->refresh());
     }
 
@@ -276,18 +278,19 @@ class AuthController extends Controller
      *
      * @return JsonResponse
      */
-    public function userProfile() {
+    public function userProfile(): JsonResponse
+    {
         return response()->json(auth()->user());
     }
-    
+
     /**
      * Get the token array structure.
      *
-     * @param  string $token
+     * @param string $token
      *
      * @return JsonResponse
      */
-    protected function createNewToken($token): JsonResponse
+    protected function createNewToken(string $token): JsonResponse
     {
         return response()->json([
             'access_token' => $token,

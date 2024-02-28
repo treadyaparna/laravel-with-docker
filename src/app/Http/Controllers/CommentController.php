@@ -31,6 +31,15 @@ class CommentController extends Controller
      *   summary="All the comments of an article",
      *   tags={"comments"},
      *   operationId="getComments",
+     *   @OA\Parameter(
+     *     name="articleId",
+     *     description="Article ID",
+     *     required=true,
+     *     in="path",
+     *     @OA\Schema(
+     *       type="integer"
+     *     )
+     *   ),
      *   @OA\Response(
      *     response=200,
      *     description="Get all the Comments of a blog articles",
@@ -49,17 +58,16 @@ class CommentController extends Controller
      *   )
      * )
      */
-    public function getComments($articleId): JsonResponse|array
+    public function getComments(int $articleId): JsonResponse|array
     {
-        $userId = auth()->user()->id;
         try {
-            return $this->commentService->getComments($articleId, $userId);
+            return $this->commentService->getComments($articleId);
         } catch (ValidationHttpException $e) {
-            return ApiResponse::response(HttpStatus::CANT_COMPLETE_VALIDATION, $e->getMessage(), $e->getErrors());
+            return ApiResponse::response(HttpStatus::CANT_COMPLETE_VALIDATION, $e->getMessage());
         } catch (ResourceException $e) {
-            return ApiResponse::response(HttpStatus::CANT_COMPLETE_REQUEST, $e->getMessage(), $e->getErrors());
+            return ApiResponse::response(HttpStatus::CANT_COMPLETE_REQUEST, $e->getMessage());
         } catch (Exception $e) {
-            return ApiResponse::response($e->getCode(), $e->getMessage(), $e->getErrors());
+            return ApiResponse::response($e->getCode(), $e->getMessage());
         }
     }
 
@@ -69,6 +77,15 @@ class CommentController extends Controller
      *   summary="Add a new comment on an article",
      *   tags={"comments"},
      *   operationId="addAComment",
+     *   @OA\Parameter(
+     *     name="articleId",
+     *     description="Article ID",
+     *     required=true,
+     *     in="path",
+     *     @OA\Schema(
+     *       type="integer"
+     *     )
+     *   ),
      *   @OA\RequestBody(
      *     @OA\JsonContent(
      *       ref="#/components/schemas/Comment",
@@ -93,21 +110,21 @@ class CommentController extends Controller
      *   ),
      *     security={{ "apiAuth": {} }}
      * )
-     *
      */
-    public function addComment(CommentRequest $request): JsonResponse|array
+    public function addComment(CommentRequest $request, int $articleId): JsonResponse|array
     {
         $commentTitle = $request->input('commentTitle');
         $commentContent = $request->input('commentContent');
-        $articleId = $request->input('articleId');
         $userId = auth()->user()->id;
 
         try {
             return $this->commentService->addComment($commentTitle, $commentContent, $userId, $articleId) ?
                 ApiResponse::response(HttpStatus::HTTP_CREATED, 'Comment created successfully') :
                 ApiResponse::response(HttpStatus::CANT_COMPLETE_REQUEST, 'Comment not created');
+        } catch (ResourceException $e) {
+            return ApiResponse::response(HttpStatus::CANT_COMPLETE_REQUEST, $e->getMessage());
         } catch (Exception $e) {
-            return ApiResponse::response($e->getCode(), $e->getMessage(), $e->getErrors());
+            return ApiResponse::response($e->getCode(), $e->getMessage());
         }
     }
 
@@ -126,7 +143,7 @@ class CommentController extends Controller
      *       type="integer"
      *     )
      *   ),
-     *    @OA\Parameter(
+     *   @OA\Parameter(
      *     name="commentId",
      *     description="Comment ID",
      *     required=true,
@@ -153,16 +170,22 @@ class CommentController extends Controller
      *     security={{ "apiAuth": {} }}
      * )
      */
-    public function deleteComment($articleId, $commentId): JsonResponse|bool
+    public function deleteComment(int $articleId, int $commentId): JsonResponse|bool
     {
         if (!$commentId) {
             return ApiResponse::response(HttpStatus::CANT_COMPLETE_VALIDATION, 'Comment ID is required');
         }
 
+        if (!$articleId) {
+            return ApiResponse::response(HttpStatus::CANT_COMPLETE_VALIDATION, 'Article ID is required');
+        }
+
         try {
-            return $this->commentService->deleteComment($commentId);
+            return $this->commentService->deleteComment($commentId, $articleId);
+        } catch (ResourceException $e) {
+            return ApiResponse::response(HttpStatus::CANT_COMPLETE_REQUEST, $e->getMessage());
         } catch (Exception $e) {
-            return ApiResponse::response($e->getCode(), $e->getMessage(), $e->getErrors());
+            return ApiResponse::response($e->getCode(), $e->getMessage());
         }
     }
 

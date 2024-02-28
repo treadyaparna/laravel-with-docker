@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('title');
             $table->string('content');
             $table->string('userId');
+            $table->string('articleId');
             $table->timestamps();
         });
     }
