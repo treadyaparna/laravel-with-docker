@@ -30,14 +30,24 @@ $api->version('v1', function ($api) {
     // article routes
     $api->get('articles', [ArticleController::class, 'getArticles']);
     $api->get('articles/{articleId}', [ArticleController::class, 'getArticle']);
-    $api->post('articles', [ArticleController::class, 'addArticle'])->middleware('role:super admin,admin');
-    $api->put('articles/{articleId}', [ArticleController::class, 'editArticle'])->middleware('role:super admin,admin');
-    $api->delete('articles/{articleId}', [ArticleController::class, 'deleteArticle'])->middleware('role:super admin');
+    $api->post('articles', [ArticleController::class, 'addArticle'])
+        ->middleware('check.auth')
+        ->middleware('role:super admin,admin');
+    $api->put('articles/{articleId}', [ArticleController::class, 'editArticle'])
+        ->middleware('check.auth')
+        ->middleware('role:super admin,admin');
+    $api->delete('articles/{articleId}', [ArticleController::class, 'deleteArticle'])
+        ->middleware('check.auth')
+        ->middleware('role:super admin');
 
     // comments routes
     $api->get('articles/{articleId}/comments', [CommentController::class, 'getComments']);
-    $api->post('articles/{articleId}/comments', [CommentController::class, 'addComment'])->middleware('role:super admin,admin');
-    $api->delete('articles/{articleId}/comments/{commentId}', [CommentController::class, 'deleteComment'])->middleware('role:super admin');
+    $api->post('articles/{articleId}/comments', [CommentController::class, 'addComment'])
+        ->middleware('check.auth')
+        ->middleware('role:super admin,admin');
+    $api->delete('articles/{articleId}/comments/{commentId}', [CommentController::class, 'deleteComment'])
+        ->middleware('check.auth')
+        ->middleware('role:super admin');
 });
 
 
