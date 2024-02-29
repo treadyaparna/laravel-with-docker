@@ -21,7 +21,11 @@ class CommentService
 
     public function getComments($articleId)
     {
-        return $this->commentRepo->getComments($articleId)->toArray();
+        $comments = $this->commentRepo->getComments($articleId);
+        if (is_object($comments) && method_exists($comments, 'toArray')) {
+            return $comments->toArray();
+        }
+        return $comments;
     }
 
     public function addComment($commentTitle, $commentContent, $userId, $articleId): bool

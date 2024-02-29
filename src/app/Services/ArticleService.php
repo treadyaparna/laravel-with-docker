@@ -26,7 +26,11 @@ class ArticleService
      */
     public function getArticles($articlePerPage): array
     {
-        return $this->articleRepo->getArticles($articlePerPage)->toArray();
+        $articles = $this->articleRepo->getArticles($articlePerPage);
+        if (is_object($articles) && method_exists($articles, 'toArray')) {
+            return $articles->toArray();
+        }
+        return $articles;
     }
 
     public function addArticle($articleTitle, $articleContent, $userId): bool
@@ -46,6 +50,10 @@ class ArticleService
 
     public function getArticle(int $articleId)
     {
-        return $this->articleRepo->getArticle($articleId)->toArray();
+        $article = $this->articleRepo->getArticle($articleId);
+        if (is_object($article) && method_exists($article, 'toArray')) {
+            return $article->toArray();
+        }
+        return $article;
     }
 }
